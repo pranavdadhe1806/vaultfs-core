@@ -1,0 +1,16 @@
+# Runtime/output artifacts
+sandbox/
+state.json
+
+# Attached project documentation files to ignore
+REPO.md
+PLAN.md
+EXECUTION_PLAN.md
+
+# Java build outputs
+out/
+*.class
+
+# IDE/editor folders
+.idea/
+.vscode/
