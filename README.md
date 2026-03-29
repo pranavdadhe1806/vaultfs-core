@@ -59,7 +59,7 @@ file-system-simulator/
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/file-system-simulator.git
+git clone https://github.com/pranavdadhe1806/file-system-simulator.git
 cd file-system-simulator
 
 # Compile
