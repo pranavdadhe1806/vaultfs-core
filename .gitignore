@@ -18,6 +18,13 @@ out/
 .tmp-home-test/
 auth-ui/
 
+# OAuth secrets
+oauth.properties
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # IDE/editor folders
 .idea/
 .vscode/
