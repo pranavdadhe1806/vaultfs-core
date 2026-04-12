@@ -7,26 +7,29 @@ A CLI-based file system simulator built entirely in **Core Java** with real **OA
 ## Quick Start
 
 ### Prerequisites
+
 - **Java 11+**
-- **Node.js** (only needed once, to build the frontend)
+- **Node.js 18+** (only needed once, to build the frontend)
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/ThreatGuardian/vaultfs-core.git
 cd vaultfs-core
 ```
 
-### 2. Set Up Environment Variables
-The project uses a `.env` file for OAuth credentials. **This file is gitignored for security.**
+### 2. Set Up Environment Variables (Optional)
+
+The project uses a `.env` file for OAuth and Firestore credentials. **This file is gitignored for security.**
 
 ```bash
-# Copy the example template
 cp .env.example .env
 ```
 
 > **Without a `.env` file, the app still runs perfectly** — you'll just log in as a Guest. OAuth (Google/GitHub) login requires valid credentials in `.env`.
 
 ### 3. Build the Frontend
+
 ```bash
 cd frontend
 npm install
@@ -35,81 +38,16 @@ cd ..
 ```
 
 ### 4. Compile & Run
+
 ```bash
-# Compile
+# Compile all Java sources
 javac -d out src/models/*.java src/datastructures/*.java src/utils/*.java src/auth/*.java src/sync/*.java src/filesystem/*.java src/Main.java
-**Requirements:**
-- Java 11+
-- Node.js 18+ and npm
 
-```powershell
-# Clone the repo
-git clone https://github.com/pranavdadhe1806/File-System-Manager-Java.git
-cd File-System-Manager-Java
-
-# Compile backend (PowerShell)
-if (Test-Path out) { Remove-Item -Recurse -Force out }
-New-Item -ItemType Directory out | Out-Null
-javac -d out (Get-ChildItem -Recurse -Filter *.java src | ForEach-Object { $_.FullName })
-
-# Run backend CLI
+# Run
 java -cp out Main
-
-# Try a quick demo in the CLI to see output
-mkdir demo
-cd demo
-create notes.txt 1024
-ls -l
-tree
-exit
-```
-
-### Frontend (React + Vite)
-
-```powershell
-# From project root
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start dev server
-npm run dev
-
-# Build production bundle
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-### Full Local Setup (Backend + Frontend)
-
-Use two terminals from the project root.
-
-**Terminal 1 (Backend CLI):**
-
-```powershell
-if (Test-Path out) { Remove-Item -Recurse -Force out }
-New-Item -ItemType Directory out | Out-Null
-javac -d out (Get-ChildItem -Recurse -Filter *.java src | ForEach-Object { $_.FullName })
-java -cp out Main
-```
-
-**Terminal 2 (Frontend UI):**
-
-```powershell
-cd frontend
-npm install
-npm run dev
 ```
 
 The app will open a browser for login. Choose **Google**, **GitHub**, or **Continue as Guest**.
-Open the URL printed by Vite (usually `http://localhost:5173`).
-
-<br/>
-
-## 💻 Commands
 
 ---
 
@@ -172,6 +110,7 @@ After saving `.env`, restart the app and the Google/GitHub buttons will work.
 ## Commands
 
 ### Navigation
+
 | Command | Description |
 |---|---|
 | `pwd` | Print current directory path |
@@ -181,6 +120,7 @@ After saving `.env`, restart the app and the Google/GitHub buttons will work.
 | `cd -` | Go back to previous directory (Stack) |
 
 ### Directory Operations
+
 | Command | Description |
 |---|---|
 | `mkdir <name>` | Create a directory |
@@ -189,6 +129,7 @@ After saving `.env`, restart the app and the Google/GitHub buttons will work.
 | `rename dir <old> <new>` | Rename a directory |
 
 ### File Operations
+
 | Command | Description |
 |---|---|
 | `create <name>` | Create an empty file |
@@ -197,6 +138,7 @@ After saving `.env`, restart the app and the Google/GitHub buttons will work.
 | `info <name>` | Show file metadata + disk block allocation |
 
 ### Listing & Search
+
 | Command | Description |
 |---|---|
 | `ls` | List files and folders |
@@ -210,11 +152,13 @@ After saving `.env`, restart the app and the Google/GitHub buttons will work.
 | `topk <k> <path>` | Top k largest files in a path |
 
 ### Symlinks
+
 | Command | Description |
 |---|---|
 | `ln -s <target> <link_name>` | Create a symbolic link (with cycle detection) |
 
 ### System
+
 | Command | Description |
 |---|---|
 | `whoami` | Show logged-in user details |
@@ -247,22 +191,24 @@ vaultfs-core/
 │   │   ├── OAuthConfig.java         # Reads credentials from .env
 │   │   └── OAuthHandler.java        # Google/GitHub OAuth 2.0 code exchange
 │   ├── sync/
-│   │   └── FirestoreSync.java       # Push state.json to Firebase
+│   │   └── FirestoreSync.java       # Async push to Firestore
 │   ├── filesystem/
-│   │   └── FileSystem.java          # Core engine — all DS + disk ops
+│   │   ├── FileSystem.java          # Core engine — all DS + disk ops
+│   │   ├── DiskService.java         # Disk I/O helpers + metadata builder
+│   │   └── SearchService.java       # Type search + size formatting
 │   ├── utils/
 │   │   ├── EnvParser.java           # .env file parser
 │   │   ├── JsonExporter.java        # Serializes state to state.json
+│   │   ├── Logger.java              # Lightweight structured logger
 │   │   ├── Colors.java              # ANSI color codes
 │   │   └── Banner.java              # ASCII art banner
-│   └── Main.java                    # CLI entry point + command router
-├── frontend/                        # React login UI (served by Java)
+│   └── Main.java                    # CLI entry point + command registry
+├── frontend/                        # React + Vite login UI (served by Java)
 ├── .env.example                     # Template for environment variables
 ├── .gitignore
 ├── FEATURE_SPEC.md                  # Data structure feature specifications
 └── README.md
 ```
-This is consumed by the **React frontend** in `frontend/` to visualize the Tree, Heap, and HashMap in real time.
 
 ---
 

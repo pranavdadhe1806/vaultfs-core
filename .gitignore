@@ -30,3 +30,6 @@ frontend/dist/
 # IDE/editor folders
 .idea/
 .vscode/
+.classpath
+.project
+.settings/
