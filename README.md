@@ -6,6 +6,18 @@ A CLI-based file system simulator built entirely in **Core Java** with real **OA
 
 ## One-Line Install
 
+### ⭐ Recommended (all platforms)
+
+```bash
+npm install -g vaultfs
+```
+
+Then just type `vaultfs` — that's it.
+
+---
+
+### Manual Install (no npm)
+
 > No package manager required. The installer handles everything.
 
 **macOS / Linux / WSL:**
@@ -250,9 +262,14 @@ vaultfs-core/
 │   │   ├── Colors.java              # ANSI color codes
 │   │   └── Banner.java              # ASCII art banner
 │   └── Main.java                    # CLI entry point + command registry
+├── bin/
+│   ├── vaultfs-npm.js               # npm global binary entry point
+│   └── postinstall.js               # Automatic post-install setup
 ├── frontend/                        # React + Vite login UI (served by Java)
 │   └── .env.example                 # Firebase config template for frontend
 ├── .env.example                     # Backend OAuth/Firestore config template
+├── package.json                     # npm package config (npm install -g vaultfs)
+├── .npmignore                       # Files excluded from npm publish
 ├── version.txt                      # Current version number
 ├── install.sh                       # One-line installer (macOS/Linux/WSL)
 ├── install.bat                      # One-line installer (Windows)
