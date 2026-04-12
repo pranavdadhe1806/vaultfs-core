@@ -8,7 +8,6 @@ import com.sun.net.httpserver.HttpHandler;
 
 import com.sun.net.httpserver.HttpServer;
 
-import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -16,7 +15,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.util.UUID;
@@ -126,25 +124,6 @@ public class AuthManager {
             final String sessionToken = UUID.randomUUID().toString();
 
             String authURL = "http://localhost:9000/login?session=" + sessionToken;
-
-
-
-            System.out.println(Colors.c(Colors.WHITE, "Opening browser for authentication..."));
-
-            System.out.println(Colors.c(Colors.GRAY, "→ " + authURL));
-
-
-
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(authURL));
-            } else {
-                System.out.println(Colors.c(Colors.YELLOW, "Could not open browser automatically."));
-                System.out.println(Colors.c(Colors.WHITE, "Please open this URL manually: ") + authURL);
-            }
-
-
-
-            System.out.println(Colors.c(Colors.GRAY, "Waiting for authentication... (timeout: 120s)"));
 
 
 
@@ -322,10 +301,41 @@ public class AuthManager {
             server.setExecutor(null);
             server.start();
 
-            boolean completed = loginLatch.await(120, TimeUnit.SECONDS);
+            // Print styled login URL box
+            System.out.println();
+            System.out.println(Colors.c(Colors.CYAN, "  ╔══════════════════════════════════════════╗"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║       VaultFS — Login Required           ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║                                          ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║  Opening browser at:                     ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║  http://localhost:9000                   ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║                                          ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║  If browser doesn't open, visit the      ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ║  URL above manually.                     ║"));
+            System.out.println(Colors.c(Colors.CYAN, "  ╚══════════════════════════════════════════╝"));
+            System.out.println();
+
+            // Open browser (cross-platform)
+            openBrowser(authURL);
+
+            // Wait up to 120 seconds with periodic progress
+            System.out.println(Colors.c(Colors.GRAY, "\uD83D\uDD10 Waiting for login... (120s timeout)"));
+            System.out.println(Colors.c(Colors.GRAY, "\uD83D\uDC49 If browser didn't open, visit: http://localhost:9000"));
+            System.out.println();
+
+            boolean completed = false;
+            for (int waited = 0; waited < 120; waited++) {
+                if (loginLatch.await(1, TimeUnit.SECONDS)) {
+                    completed = true;
+                    break;
+                }
+                if ((waited + 1) % 10 == 0) {
+                    System.out.println(Colors.c(Colors.GRAY, "   Still waiting... (" + (120 - waited - 1) + "s remaining)"));
+                }
+            }
 
             if (!completed && !isLoggedIn()) {
-                System.out.println(Colors.c(Colors.RED, "Login timeout. Please try again."));
+                System.out.println(Colors.c(Colors.YELLOW, "\u26A0\uFE0F  Login timed out. Continuing as Guest."));
+                persistLogin(UUID.randomUUID().toString(), "guest@local", "Guest");
                 server.stop(0);
             }
 
@@ -335,6 +345,36 @@ public class AuthManager {
 
         }
 
+    }
+
+    /** Opens a URL in the default browser using platform-specific commands. */
+    private static void openBrowser(String url) {
+        String os = System.getProperty("os.name").toLowerCase();
+        Runtime rt = Runtime.getRuntime();
+        try {
+            if (os.contains("win")) {
+                rt.exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
+            } else if (os.contains("mac")) {
+                rt.exec(new String[]{"open", url});
+            } else {
+                // Linux/WSL
+                String[] browsers = {"xdg-open", "firefox", "google-chrome", "chromium-browser"};
+                boolean opened = false;
+                for (String browser : browsers) {
+                    try {
+                        rt.exec(new String[]{browser, url});
+                        opened = true;
+                        break;
+                    } catch (Exception ignored) {}
+                }
+                if (!opened) {
+                    System.out.println("Please open this URL manually: " + url);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Could not open browser automatically.");
+            System.out.println("Please open this URL manually: " + url);
+        }
     }
 
 
