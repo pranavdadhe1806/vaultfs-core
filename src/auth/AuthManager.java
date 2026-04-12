@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpHandler;
 
 import com.sun.net.httpserver.HttpServer;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -15,9 +16,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import utils.Colors;
 
@@ -131,20 +135,11 @@ public class AuthManager {
 
 
 
-            String os = System.getProperty("os.name").toLowerCase();
-
-            if (os.contains("win")) {
-
-                Runtime.getRuntime().exec(new String[] {"cmd", "/c", "start", authURL});
-
-            } else if (os.contains("mac")) {
-
-                Runtime.getRuntime().exec(new String[] {"open", authURL});
-
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(new URI(authURL));
             } else {
-
-                Runtime.getRuntime().exec(new String[] {"xdg-open", authURL});
-
+                System.out.println(Colors.c(Colors.YELLOW, "Could not open browser automatically."));
+                System.out.println(Colors.c(Colors.WHITE, "Please open this URL manually: ") + authURL);
             }
 
 
@@ -153,6 +148,7 @@ public class AuthManager {
 
 
 
+            final CountDownLatch loginLatch = new CountDownLatch(1);
             final HttpServer server = HttpServer.create(new InetSocketAddress(9000), 0);
 
             
@@ -272,6 +268,7 @@ public class AuthManager {
                     serveSuccess(exchange, result[0]);
                     System.out.println(Colors.c(Colors.GREEN, "✓") + " Logged in via Google as "
                         + Colors.c(Colors.YELLOW, result[0]) + " (" + result[1] + ")");
+                    loginLatch.countDown();
                     server.stop(0);
                 }
             });
@@ -305,6 +302,7 @@ public class AuthManager {
                     serveSuccess(exchange, result[0]);
                     System.out.println(Colors.c(Colors.GREEN, "✓") + " Logged in via GitHub as "
                         + Colors.c(Colors.YELLOW, result[0]) + " (" + result[1] + ")");
+                    loginLatch.countDown();
                     server.stop(0);
                 }
             });
@@ -313,39 +311,22 @@ public class AuthManager {
             server.createContext("/callback", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange exchange) throws IOException {
-                    persistLogin("guest-token", "guest@local", "Guest");
+                    persistLogin(UUID.randomUUID().toString(), "guest@local", "Guest");
                     serveSuccess(exchange, "Guest");
                     System.out.println(Colors.c(Colors.GREEN, "✓") + " Logged in as " + Colors.c(Colors.YELLOW, "Guest"));
+                    loginLatch.countDown();
                     server.stop(0);
                 }
             });
 
             server.setExecutor(null);
-
             server.start();
 
+            boolean completed = loginLatch.await(120, TimeUnit.SECONDS);
 
-
-            for (int i = 0; i < 120; i++) {
-
-                Thread.sleep(1000);
-
-                if (isLoggedIn()) {
-
-                    break;
-
-                }
-
-            }
-
-
-
-            if (!isLoggedIn()) {
-
+            if (!completed && !isLoggedIn()) {
                 System.out.println(Colors.c(Colors.RED, "Login timeout. Please try again."));
-
                 server.stop(0);
-
             }
 
         } catch (Exception e) {

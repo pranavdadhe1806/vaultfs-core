@@ -858,7 +858,7 @@ public class FileSystem {
     }
 
     /** Allows plain names only so commands operate within current directory scope.
-     *  Rejects path separators, traversal patterns (..), and null bytes. */
+     *  Rejects path separators, traversal patterns (..), null bytes, and empty/blank names. */
     private boolean isSimpleName(String name) {
         if (name == null || name.trim().isEmpty()) {
             return false;
@@ -869,13 +869,25 @@ public class FileSystem {
         if (".".equals(name) || "..".equals(name)) {
             return false;
         }
+        // Reject names that contain ".." as a substring (e.g. "foo..bar" is fine,
+        // but this catches edge cases with path separators stripped earlier)
+        if (name.contains("..")) {
+            return false;
+        }
         return true;
     }
 
     /** Validates that a resolved path stays within the given parent directory boundary.
-     *  Uses canonical paths to defeat symlink or traversal escapes. */
+     *  Uses both normalized absolute paths and canonical paths to defeat all traversal attacks. */
     private boolean isWithinBoundary(String parentPath, String childPath) {
         try {
+            // Primary check: normalize + toAbsolutePath
+            java.nio.file.Path normalizedParent = Paths.get(parentPath).normalize().toAbsolutePath();
+            java.nio.file.Path normalizedChild = Paths.get(childPath).normalize().toAbsolutePath();
+            if (!normalizedChild.startsWith(normalizedParent)) {
+                return false;
+            }
+            // Secondary check: canonical path (resolves symlinks)
             String canonicalParent = new File(parentPath).getCanonicalPath();
             String canonicalChild = new File(childPath).getCanonicalPath();
             return canonicalChild.startsWith(canonicalParent + File.separator)

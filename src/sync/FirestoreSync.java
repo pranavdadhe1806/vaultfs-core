@@ -18,7 +18,12 @@ import utils.Logger;
 
 /** Pushes state snapshots to Firestore using Google OAuth service-account JWT flow. */
 public class FirestoreSync {
-    private static final String PROJECT_ID = "vault-fs";
+    private static final String PROJECT_ID = resolveProjectId();
+
+    private static String resolveProjectId() {
+        String id = utils.EnvParser.get("FIREBASE_PROJECT_ID", "");
+        return (id != null && !id.isEmpty()) ? id : "vault-fs";
+    }
 
     /**
      * Resolves the service account JSON path from, in order:
@@ -131,64 +136,73 @@ public class FirestoreSync {
                 return null;
             }
 
-            privateKey = privateKey
-                    .replace("-----BEGIN PRIVATE KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
-                    .replace("\\n", "")
-                    .replace("\n", "")
-                    .trim();
+            // Use char array for private key so we can zero it after use
+            char[] privateKeyChars = privateKey.toCharArray();
+            privateKey = null; // Release string reference
 
-            long now = System.currentTimeMillis() / 1000;
-            long exp = now + 3600;
+            try {
+                String strippedKey = new String(privateKeyChars)
+                        .replace("-----BEGIN PRIVATE KEY-----", "")
+                        .replace("-----END PRIVATE KEY-----", "")
+                        .replace("\\n", "")
+                        .replace("\n", "")
+                        .trim();
 
-            String headerJson = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
-            String payloadJson = "{"
-                    + "\"iss\":\"" + escapeJson(clientEmail) + "\"," 
-                    + "\"scope\":\"https://www.googleapis.com/auth/datastore\"," 
-                    + "\"aud\":\"https://oauth2.googleapis.com/token\"," 
-                    + "\"exp\":" + exp + ","
-                    + "\"iat\":" + now
-                    + "}";
+                long now = System.currentTimeMillis() / 1000;
+                long exp = now + 3600;
 
-            String encodedHeader = base64url(headerJson.getBytes("UTF-8"));
-            String encodedPayload = base64url(payloadJson.getBytes("UTF-8"));
-            String signingInput = encodedHeader + "." + encodedPayload;
-            String signature = signRsa(signingInput, privateKey);
-            String jwt = signingInput + "." + signature;
+                String headerJson = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
+                String payloadJson = "{"
+                        + "\"iss\":\"" + escapeJson(clientEmail) + "\"," 
+                        + "\"scope\":\"https://www.googleapis.com/auth/datastore\"," 
+                        + "\"aud\":\"https://oauth2.googleapis.com/token\"," 
+                        + "\"exp\":" + exp + ","
+                        + "\"iat\":" + now
+                        + "}";
 
-            HttpURLConnection conn = (HttpURLConnection) URI.create("https://oauth2.googleapis.com/token").toURL().openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                String encodedHeader = base64url(headerJson.getBytes("UTF-8"));
+                String encodedPayload = base64url(payloadJson.getBytes("UTF-8"));
+                String signingInput = encodedHeader + "." + encodedPayload;
+                String signature = signRsa(signingInput, strippedKey);
+                String jwt = signingInput + "." + signature;
 
-            String form = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion="
-                    + URLEncoder.encode(jwt, "UTF-8");
+                HttpURLConnection conn = (HttpURLConnection) URI.create("https://oauth2.googleapis.com/token").toURL().openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(form.getBytes("UTF-8"));
-            }
+                String form = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion="
+                        + URLEncoder.encode(jwt, "UTF-8");
 
-            InputStream responseStream;
-            if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
-                responseStream = conn.getInputStream();
-            } else {
-                responseStream = conn.getErrorStream();
-            }
-
-            if (responseStream == null) {
-                return null;
-            }
-
-            StringBuilder response = new StringBuilder();
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(responseStream, "UTF-8"))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    response.append(line);
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(form.getBytes("UTF-8"));
                 }
-            }
 
-            String responseBody = response.toString();
-            return extractJsonField(responseBody, "access_token");
+                InputStream responseStream;
+                if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
+                    responseStream = conn.getInputStream();
+                } else {
+                    responseStream = conn.getErrorStream();
+                }
+
+                if (responseStream == null) {
+                    return null;
+                }
+
+                StringBuilder response = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(responseStream, "UTF-8"))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        response.append(line);
+                    }
+                }
+
+                String responseBody = response.toString();
+                return extractJsonField(responseBody, "access_token");
+            } finally {
+                // Zero out private key material
+                java.util.Arrays.fill(privateKeyChars, '\0');
+            }
         } catch (Exception e) {
             return null;
         }

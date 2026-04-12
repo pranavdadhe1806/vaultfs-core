@@ -30,8 +30,12 @@ cp .env.example .env
 
 ### 3. Build the Frontend
 
+The frontend uses Firebase for Google sign-in. Create its own `.env` file:
+
 ```bash
 cd frontend
+cp .env.example .env
+# Fill in your Firebase project config from https://console.firebase.google.com
 npm install
 npm run build
 cd ..
@@ -204,7 +208,8 @@ vaultfs-core/
 │   │   └── Banner.java              # ASCII art banner
 │   └── Main.java                    # CLI entry point + command registry
 ├── frontend/                        # React + Vite login UI (served by Java)
-├── .env.example                     # Template for environment variables
+│   └── .env.example                 # Firebase config template for frontend
+├── .env.example                     # Backend OAuth/Firestore config template
 ├── .gitignore
 ├── FEATURE_SPEC.md                  # Data structure feature specifications
 └── README.md

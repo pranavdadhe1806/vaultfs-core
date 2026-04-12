@@ -15,6 +15,18 @@ public class EnvParser {
     }
 
     private static void loadEnvFile(String path) {
+        // Validate the .env path is within the project directory
+        try {
+            java.io.File envFile = new java.io.File(path);
+            String canonicalEnv = envFile.getCanonicalPath();
+            String canonicalBase = new java.io.File(System.getProperty("user.dir")).getCanonicalPath();
+            if (!canonicalEnv.startsWith(canonicalBase)) {
+                System.err.println("[EnvParser] Warning: .env path outside project directory, skipping");
+                return;
+            }
+        } catch (IOException e) {
+            // Fall through to normal file load which will handle the error
+        }
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
             String line;
             while ((line = reader.readLine()) != null) {
