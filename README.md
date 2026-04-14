@@ -4,6 +4,49 @@ A CLI-based file system simulator built entirely in **Core Java** with real **OA
 
 ---
 
+## One-Line Install
+
+### ⭐ Recommended (all platforms)
+
+```bash
+npm install -g vaultfs
+```
+
+Then just type `vaultfs` — that's it.
+
+---
+
+### Manual Install (no npm)
+
+> No package manager required. The installer handles everything.
+
+**macOS / Linux / WSL:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.sh | bash
+```
+
+**Windows (Command Prompt):**
+
+```
+curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.bat -o install.bat && install.bat
+```
+
+**Uninstall:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/uninstall.sh | bash
+```
+
+**Upgrade:**
+
+```bash
+# Re-run the installer — it will detect existing install and offer upgrade
+curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.sh | bash
+```
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -111,6 +154,18 @@ After saving `.env`, restart the app and the Google/GitHub buttons will work.
 
 ---
 
+## CLI Tool Commands
+
+| Command | Description |
+|---|---|
+| `vaultfs` | Launch VaultFS |
+| `vaultfs --version` | Show installed version |
+| `vaultfs update` | Pull latest and rebuild automatically |
+| `vaultfs doctor` | Health check — diagnoses install issues |
+| `vaultfs uninstall` | *coming soon* |
+
+---
+
 ## Commands
 
 ### Navigation
@@ -207,13 +262,34 @@ vaultfs-core/
 │   │   ├── Colors.java              # ANSI color codes
 │   │   └── Banner.java              # ASCII art banner
 │   └── Main.java                    # CLI entry point + command registry
+├── bin/
+│   ├── vaultfs-npm.js               # npm global binary entry point
+│   └── postinstall.js               # Automatic post-install setup
 ├── frontend/                        # React + Vite login UI (served by Java)
 │   └── .env.example                 # Firebase config template for frontend
 ├── .env.example                     # Backend OAuth/Firestore config template
+├── package.json                     # npm package config (npm install -g vaultfs)
+├── .npmignore                       # Files excluded from npm publish
+├── version.txt                      # Current version number
+├── install.sh                       # One-line installer (macOS/Linux/WSL)
+├── install.bat                      # One-line installer (Windows)
+├── uninstall.sh                     # Uninstaller (macOS/Linux/WSL)
 ├── .gitignore
 ├── FEATURE_SPEC.md                  # Data structure feature specifications
 └── README.md
 ```
+
+---
+
+## Compatibility
+
+| Platform | Status |
+|---|---|
+| macOS (Intel + Apple Silicon) | ✅ Supported |
+| Linux (Ubuntu, Debian, Arch) | ✅ Supported |
+| WSL2 (Windows Subsystem for Linux) | ✅ Supported |
+| Windows (Command Prompt) | ✅ Supported |
+| Windows (PowerShell) | ⚠️ Use CMD or WSL instead |
 
 ---
 

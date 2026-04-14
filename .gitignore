@@ -1,6 +1,7 @@
 # Runtime/output artifacts
 sandbox/
 state.json
+sources.txt
 
 # Attached project documentation files to ignore
 REPO.md
@@ -23,7 +24,8 @@ auth-ui/
 .env.*
 !.env.example
 
-# Frontend
+# Node modules
+node_modules/
 frontend/node_modules/
 frontend/dist/
 
