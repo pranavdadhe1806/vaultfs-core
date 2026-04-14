@@ -105,8 +105,10 @@ public class AuthManager {
             URL url = URI.create(AuthConfig.AUTH_SERVER_URL + "/auth/session/new").toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 200) return null;
             String response = readStream(conn.getInputStream());
             return extractJsonValue(response, "sessionId");
         } catch (Exception e) {
@@ -170,29 +172,17 @@ public class AuthManager {
     /** Opens a URL in the default browser using platform-specific commands. */
     private static void openBrowser(String url) {
         String os = System.getProperty("os.name").toLowerCase();
-        Runtime rt = Runtime.getRuntime();
         try {
             if (os.contains("win")) {
-                rt.exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
+                Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", "", url});
             } else if (os.contains("mac")) {
-                rt.exec(new String[]{"open", url});
+                Runtime.getRuntime().exec(new String[]{"open", url});
             } else {
-                String[] browsers = {"xdg-open", "firefox", "google-chrome", "chromium-browser"};
-                boolean opened = false;
-                for (String browser : browsers) {
-                    try {
-                        rt.exec(new String[]{browser, url});
-                        opened = true;
-                        break;
-                    } catch (Exception ignored) {}
-                }
-                if (!opened) {
-                    System.out.println("Please open this URL manually: " + url);
-                }
+                Runtime.getRuntime().exec(new String[]{"xdg-open", url});
             }
         } catch (Exception e) {
-            System.out.println("Could not open browser automatically.");
-            System.out.println("Please open this URL manually: " + url);
+            System.out.println("  Could not open browser: " + e.getMessage());
+            System.out.println("  Please visit manually: " + url);
         }
     }
 
