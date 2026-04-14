@@ -1,6 +1,6 @@
 {
   "name": "vaultfs",
-  "version": "1.0.2",
+  "version": "1.0.9",
   "description": "A CLI-based secure file system simulator with OAuth 2.0 authentication and advanced data structures",
   "bin": {
     "vaultfs": "bin/vaultfs-npm.js"
@@ -24,7 +24,16 @@
   "files": [
     "bin/",
     "src/",
-    "frontend/",
+    "frontend/dist/",
+    "frontend/src/",
+    "frontend/public/",
+    "frontend/package.json",
+    "frontend/index.html",
+    "frontend/vite.config.js",
+    "frontend/.env.example",
+    "frontend/eslint.config.js",
+    "frontend/README.md",
+    "frontend/success.html",
     "version.txt",
     ".env.example",
     "install.sh",

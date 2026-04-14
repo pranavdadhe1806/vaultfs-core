@@ -1,298 +1,227 @@
-# VaultFS — Secure File System Simulator
+<div align="center">
 
-A CLI-based file system simulator built entirely in **Core Java** with real **OAuth 2.0 authentication** (Google & GitHub), a built-in **React login frontend**, and advanced **data structure implementations** — Stack, Queue, BST, HashMap, LinkedList, Graphs, and Sorting.
+# 🔐 VaultFS
+
+[![npm version](https://img.shields.io/npm/v/vaultfs?color=green&label=npm)](https://www.npmjs.com/package/vaultfs)
+[![npm downloads](https://img.shields.io/npm/dm/vaultfs?color=blue)](https://www.npmjs.com/package/vaultfs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-brightgreen)](https://nodejs.org)
+[![Java](https://img.shields.io/badge/Java-11%2B-orange)](https://adoptium.net)
+[![Auth Server](https://img.shields.io/badge/Auth%20Server-Live%20on%20Render-purple)](https://vaultfs-auth-server.onrender.com)
+
+**A CLI-based secure file system simulator built in Core Java**
+**with real OAuth 2.0 authentication and 9 advanced data structures**
+
+[Install](#-install) • [Usage](#-usage) • [Architecture](#-architecture) • [Data Structures](#-data-structures) • [Commands](#-commands)
+
+</div>
 
 ---
 
-## One-Line Install
+## ⚡ Install
 
-### ⭐ Recommended (all platforms)
+### Option 1 — npm (recommended)
 
 ```bash
 npm install -g vaultfs
 ```
+> Requires **Java 11+** and **Node.js 18+**
 
-Then just type `vaultfs` — that's it.
+### Option 2 — One-line install (no npm needed)
 
----
+**Windows (PowerShell):**
+```powershell
+curl -o install.bat https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.bat && install.bat
+```
 
-### Manual Install (no npm)
-
-> No package manager required. The installer handles everything.
-
-**macOS / Linux / WSL:**
-
+**macOS / Linux:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.sh | bash
 ```
+> Requires **Java 11+** and **Git**
 
-**Windows (Command Prompt):**
+---
 
-```
-curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.bat -o install.bat && install.bat
-```
-
-**Uninstall:**
+## 🚀 Usage
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/uninstall.sh | bash
+vaultfs
 ```
 
-**Upgrade:**
+On first launch, a browser opens for Google/GitHub login.  
+Press **Enter** to skip and continue as Guest.
 
-```bash
-# Re-run the installer — it will detect existing install and offer upgrade
-curl -fsSL https://raw.githubusercontent.com/ThreatGuardian/vaultfs-core/main/install.sh | bash
+---
+
+## 🏗 Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   User's Machine                    │
+│                                                     │
+│   npm install -g vaultfs                            │
+│          ↓                                          │
+│   vaultfs (Node.js launcher)                        │
+│          ↓                                          │
+│   java -cp ~/.vaultfs/out Main                      │
+│          ↓                                          │
+│   Opens browser ──────────────────────────────┐     │
+└───────────────────────────────────────────────│─────┘
+                                                │
+                                                ↓
+┌─────────────────────────────────────────────────────┐
+│            Render Cloud (Auth Server)               │
+│                                                     │
+│   vaultfs-auth-server.onrender.com                  │
+│          ↓                                          │
+│   /auth/login → Google or GitHub OAuth              │
+│          ↓                                          │
+│   Credentials NEVER leave this server               │
+│          ↓                                          │
+│   /auth/poll → sends token back to CLI              │
+└─────────────────────────────────────────────────────┘
+                                                │
+                                                ↓
+┌─────────────────────────────────────────────────────┐
+│                   User's Terminal                   │
+│                                                     │
+│   ✅ Logged in as John (google)                     │
+│   Welcome back, John!                               │
+│                                                     │
+│   ~/.vaultfs> _                                     │
+└─────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Quick Start
+## 🔐 Authentication
 
-### Prerequisites
+VaultFS uses a **centralized auth server** deployed on Render.
+Your OAuth credentials never touch the user's machine.
 
-- **Java 11+**
-- **Node.js 18+** (only needed once, to build the frontend)
+| Provider | Status |
+|---|---|
+| Google OAuth 2.0 | ✅ Live |
+| GitHub OAuth | ✅ Live |
+| Guest Mode | ✅ No setup needed |
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/ThreatGuardian/vaultfs-core.git
-cd vaultfs-core
-```
-
-### 2. Set Up Environment Variables (Optional)
-
-The project uses a `.env` file for OAuth and Firestore credentials. **This file is gitignored for security.**
-
-```bash
-cp .env.example .env
-```
-
-> **Without a `.env` file, the app still runs perfectly** — you'll just log in as a Guest. OAuth (Google/GitHub) login requires valid credentials in `.env`.
-
-### 3. Build the Frontend
-
-The frontend uses Firebase for Google sign-in. Create its own `.env` file:
-
-```bash
-cd frontend
-cp .env.example .env
-# Fill in your Firebase project config from https://console.firebase.google.com
-npm install
-npm run build
-cd ..
-```
-
-### 4. Compile & Run
-
-```bash
-# Compile all Java sources
-javac -d out src/models/*.java src/datastructures/*.java src/utils/*.java src/auth/*.java src/sync/*.java src/filesystem/*.java src/Main.java
-
-# Run
-java -cp out Main
-```
-
-The app will open a browser for login. Choose **Google**, **GitHub**, or **Continue as Guest**.
+Auth server: https://vaultfs-auth-server.onrender.com
 
 ---
 
-## Setting Up OAuth (Optional)
+## 🧠 Data Structures
 
-If you want Google/GitHub login instead of Guest mode, follow these steps.
-
-### Google OAuth Setup
-
-1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
-2. Click **Create Credentials** → **OAuth client ID**
-3. Select **Web application** as the type
-4. Under **Authorized redirect URIs**, add:
-   ```
-   http://localhost:9000/callback/google
-   ```
-5. Click **Create** and copy the **Client ID** and **Client Secret**
-6. Paste them into your `.env` file:
-   ```env
-   GOOGLE_CLIENT_ID=your-client-id-here.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your-client-secret-here
-   ```
-
-### GitHub OAuth Setup
-
-1. Go to [GitHub → Developer Settings → OAuth Apps](https://github.com/settings/developers)
-2. Click **New OAuth App**
-3. Fill in:
-   - **Application name:** `VaultFS`
-   - **Homepage URL:** `http://localhost:9000`
-   - **Authorization callback URL:** `http://localhost:9000/callback/github`
-4. Click **Register application**
-5. Copy the **Client ID**, then click **Generate a new client secret** and copy it
-6. Paste them into your `.env` file:
-   ```env
-   GITHUB_CLIENT_ID=your-client-id-here
-   GITHUB_CLIENT_SECRET=your-client-secret-here
-   ```
-
-After saving `.env`, restart the app and the Google/GitHub buttons will work.
-
----
-
-## Data Structures Used
-
-| Data Structure | Feature | Concept |
+| Data Structure | Feature | Complexity |
 |---|---|---|
-| **Stack** | `cd -` (go back to previous directory) | LIFO directory history |
-| **Queue** | `mkdir a ; cd a ; create f.txt` (chained commands) | FIFO command buffer |
-| **Binary Search Tree** | `find <filename>` (global search) | O(log n) name lookup |
-| **HashMap** | `cd /deep/absolute/path` (instant jump) | O(1) path resolution |
-| **Sorting (Merge/Quick)** | `ls -size`, `ls -name`, `ls -date` | Custom comparator sorting |
-| **Graph + HashSet** | `ln -s <target> <link>` (symlinks) | Directed graph + cycle detection |
-| **LinkedList + Array** | `info <file>` (shows disk blocks) | File fragmentation simulation |
-| **N-ary Tree** | Directory hierarchy | Parent-child file system |
-| **MaxHeap** | `topk <k> <path>` | Top-k largest files |
+| **Stack** | `cd -` directory history | O(1) |
+| **Queue** | Chained commands with `;` | O(1) |
+| **Binary Search Tree** | `find <filename>` global search | O(log n) |
+| **HashMap** | `cd /deep/path` instant jump | O(1) |
+| **Merge/Quick Sort** | `ls -size`, `ls -name`, `ls -date` | O(n log n) |
+| **Graph + HashSet** | `ln -s` symlinks + cycle detection | O(V+E) |
+| **LinkedList + Array** | `info` disk block simulation | O(n) |
+| **N-ary Tree** | Directory hierarchy | O(n) |
+| **MaxHeap** | `topk <k>` largest files | O(n log k) |
 
 ---
 
-## CLI Tool Commands
+## 💻 Commands
+
+### Navigation
+| Command | Description |
+|---|---|
+| `pwd` | Print current directory |
+| `cd <dir>` | Navigate into directory |
+| `cd ..` | Go one level up |
+| `cd /` | Go to root |
+| `cd -` | Go back (Stack) |
+
+### File Operations
+| Command | Description |
+|---|---|
+| `create <name>` | Create a file |
+| `delete <name>` | Delete a file |
+| `mkdir <name>` | Create a directory |
+| `rmdir <name>` | Delete empty directory |
+| `rmdir -f <name>` | Force delete directory |
+| `rename file <old> <new>` | Rename a file |
+| `rename dir <old> <new>` | Rename a directory |
+| `info <name>` | File metadata + disk blocks |
+
+### Search & Listing
+| Command | Description |
+|---|---|
+| `ls` | List contents |
+| `ls -l` | Detailed listing |
+| `ls -size` | Sort by size |
+| `ls -name` | Sort alphabetically |
+| `ls -date` | Sort by date |
+| `find <name>` | Global search via BST |
+| `search -t <type>` | Find by file type |
+| `tree <path>` | ASCII directory tree |
+| `topk <k> <path>` | Top k largest files |
+
+### Symlinks & System
+| Command | Description |
+|---|---|
+| `ln -s <target> <link>` | Create symlink |
+| `whoami` | Show logged-in user |
+| `logout` | Clear auth and exit |
+| `help` | Show all commands |
+| `clear` | Clear terminal |
+| `exit` | Save and exit |
+
+---
+
+## 🛠 CLI Tool
 
 | Command | Description |
 |---|---|
 | `vaultfs` | Launch VaultFS |
-| `vaultfs --version` | Show installed version |
-| `vaultfs update` | Pull latest and rebuild automatically |
-| `vaultfs doctor` | Health check — diagnoses install issues |
-| `vaultfs uninstall` | *coming soon* |
+| `vaultfs --version` | Show version |
+| `vaultfs update` | Pull latest and rebuild |
+| `vaultfs doctor` | Health check |
 
 ---
 
-## Commands
-
-### Navigation
-
-| Command | Description |
-|---|---|
-| `pwd` | Print current directory path |
-| `cd <dir>` | Navigate into a directory |
-| `cd ..` | Go one level up |
-| `cd /` | Go to filesystem root |
-| `cd -` | Go back to previous directory (Stack) |
-
-### Directory Operations
-
-| Command | Description |
-|---|---|
-| `mkdir <name>` | Create a directory |
-| `rmdir <name>` | Delete an empty directory |
-| `rmdir -f <name>` | Force delete directory and all contents |
-| `rename dir <old> <new>` | Rename a directory |
-
-### File Operations
-
-| Command | Description |
-|---|---|
-| `create <name>` | Create an empty file |
-| `delete <name>` | Delete a file |
-| `rename file <old> <new>` | Rename a file |
-| `info <name>` | Show file metadata + disk block allocation |
-
-### Listing & Search
-
-| Command | Description |
-|---|---|
-| `ls` | List files and folders |
-| `ls -l` | Detailed listing with size, type, date |
-| `ls -size` | Sort by file size (descending) |
-| `ls -name` | Sort alphabetically |
-| `ls -date` | Sort by modified date (newest first) |
-| `find <name>` | Fast global search using BST |
-| `search -t <type>` | Find all files of a given type |
-| `tree <path>` | Print ASCII directory tree |
-| `topk <k> <path>` | Top k largest files in a path |
-
-### Symlinks
-
-| Command | Description |
-|---|---|
-| `ln -s <target> <link_name>` | Create a symbolic link (with cycle detection) |
-
-### System
-
-| Command | Description |
-|---|---|
-| `whoami` | Show logged-in user details |
-| `logout` | Clear auth tokens and exit |
-| `help` | Show all commands |
-| `clear` | Clear terminal |
-| `exit` | Save state and exit |
-
-> **Tip:** You can chain multiple commands with `;` — e.g. `mkdir test ; cd test ; create hello.txt`
-
----
-
-## Project Structure
-
-```
-vaultfs-core/
-├── src/
-│   ├── models/
-│   │   ├── FileMetadata.java        # File metadata + disk block reference
-│   │   └── FileNode.java            # Directory node in the tree
-│   ├── datastructures/
-│   │   ├── DirectoryTree.java       # N-ary tree + HashMap lookups + BST
-│   │   ├── BinarySearchTree.java    # Custom BST for O(log n) file search
-│   │   ├── DiskSimulator.java       # LinkedList + Array block fragmentation
-│   │   ├── FileLinkedList.java      # Custom singly LinkedList for files
-│   │   ├── FileHashMap.java         # Custom HashMap with separate chaining
-│   │   └── FileHeap.java            # Custom MaxHeap for top-k queries
-│   ├── auth/
-│   │   ├── AuthManager.java         # Login flow, whoami, logout
-│   │   ├── OAuthConfig.java         # Reads credentials from .env
-│   │   └── OAuthHandler.java        # Google/GitHub OAuth 2.0 code exchange
-│   ├── sync/
-│   │   └── FirestoreSync.java       # Async push to Firestore
-│   ├── filesystem/
-│   │   ├── FileSystem.java          # Core engine — all DS + disk ops
-│   │   ├── DiskService.java         # Disk I/O helpers + metadata builder
-│   │   └── SearchService.java       # Type search + size formatting
-│   ├── utils/
-│   │   ├── EnvParser.java           # .env file parser
-│   │   ├── JsonExporter.java        # Serializes state to state.json
-│   │   ├── Logger.java              # Lightweight structured logger
-│   │   ├── Colors.java              # ANSI color codes
-│   │   └── Banner.java              # ASCII art banner
-│   └── Main.java                    # CLI entry point + command registry
-├── bin/
-│   ├── vaultfs-npm.js               # npm global binary entry point
-│   └── postinstall.js               # Automatic post-install setup
-├── frontend/                        # React + Vite login UI (served by Java)
-│   └── .env.example                 # Firebase config template for frontend
-├── .env.example                     # Backend OAuth/Firestore config template
-├── package.json                     # npm package config (npm install -g vaultfs)
-├── .npmignore                       # Files excluded from npm publish
-├── version.txt                      # Current version number
-├── install.sh                       # One-line installer (macOS/Linux/WSL)
-├── install.bat                      # One-line installer (Windows)
-├── uninstall.sh                     # Uninstaller (macOS/Linux/WSL)
-├── .gitignore
-├── FEATURE_SPEC.md                  # Data structure feature specifications
-└── README.md
-```
-
----
-
-## Compatibility
+## 🖥 Compatibility
 
 | Platform | Status |
 |---|---|
-| macOS (Intel + Apple Silicon) | ✅ Supported |
-| Linux (Ubuntu, Debian, Arch) | ✅ Supported |
-| WSL2 (Windows Subsystem for Linux) | ✅ Supported |
-| Windows (Command Prompt) | ✅ Supported |
-| Windows (PowerShell) | ⚠️ Use CMD or WSL instead |
+| macOS (Intel + Apple Silicon) | ✅ |
+| Linux (Ubuntu, Debian, Arch) | ✅ |
+| WSL2 | ✅ |
+| Windows (CMD / PowerShell) | ✅ |
 
 ---
 
-## License
+## 📁 Project Structure
 
-MIT
+```
+vaultfs-core/
+├── src/                    # Core Java source
+│   ├── auth/               # OAuth + auth flow
+│   ├── datastructures/     # All 9 DS implementations
+│   ├── filesystem/         # File system engine
+│   ├── models/             # File + directory models
+│   ├── sync/               # Firestore sync
+│   ├── utils/              # Logger, colors, banner
+│   └── Main.java           # CLI entry point
+├── auth-server/            # Node.js OAuth server (Render)
+│   └── server.js           # Express auth server
+├── frontend/               # React login UI
+├── bin/                    # npm launcher scripts
+│   ├── vaultfs-npm.js      # CLI entry point
+│   └── postinstall.js      # Auto build + compile
+├── install.sh              # Bash installer
+├── install.bat             # Windows installer
+├── uninstall.sh            # Uninstaller
+├── package.json            # npm package config
+└── version.txt             # Current version
+```
+
+---
+
+## 📄 License
+
+MIT © [ThreatGuardian](https://github.com/ThreatGuardian)
